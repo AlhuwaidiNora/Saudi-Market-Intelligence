@@ -1,29 +1,33 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-from .config import settings
-from .routers import market_data, predictions, analytics
+from app.config import settings
+from app.routers import market_data, analysis, auth, users
 
-app = FastAPI(title="Saudi Market Intelligence API")
+app = FastAPI(
+    title="Saudi Market Intelligence API",
+    description="API for Saudi market analysis and intelligence",
+    version="1.0.0"
+)
 
-# CORS configuration
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_db_client():
-    app.mongodb_client = AsyncIOMotorClient(settings.MONGODB_URL)
-    app.mongodb = app.mongodb_client[settings.MONGODB_NAME]
+# Include routers
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/api/users", tags=["Users"])
+app.include_router(market_data.router, prefix="/api/market-data", tags=["Market Data"])
+app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    app.mongodb_client.close()
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Saudi Market Intelligence API"}
 
-app.include_router(market_data.router, prefix="/api/v1/market-data", tags=["market-data"])
-app.include_router(predictions.router, prefix="/api/v1/predictions", tags=["predictions"])
-app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["analytics"])
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
