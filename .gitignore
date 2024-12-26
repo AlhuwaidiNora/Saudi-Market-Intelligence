@@ -45,3 +45,24 @@ Thumbs.db
 /data_pipeline/logging/*.log
 /monitoring/data/
 
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.env/
+.ENV/
+
+# Python dependencies
+*.so
+*.so.2
+*.dylib
+
+# Tensorflow specific
+**/tensorflow/*
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
